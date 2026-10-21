@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="xchgrates.client/xchgrates.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="XchgRates.Server.Application/XchgRates.Server.Application.csproj" Id="d3a77dc3-01bd-4d09-8f0c-d50f18175589" />
+  <Project Path="XchgRates.Server.Domain/XchgRates.Server.Domain.csproj" Id="e1491289-0426-41eb-a94b-9dba9af55184" />
+  <Project Path="XchgRates.Server.Infrastructure/XchgRates.Server.Infrastructure.csproj" Id="3b97f1b5-4b21-4a9b-9640-828fdd4cbf13" />
+  <Project Path="XchgRates.Server/XchgRates.Server.csproj" />
+</Solution>
