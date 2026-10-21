@@ -13,6 +13,8 @@ internal class ExchangeRateApiResolver(
 {
     public ApiConfiguration[] GetSupportedApis()
     {
+        //todo: cache results based on settingsMonitor.OnChange
+
         var apis = settingsMonitor.CurrentValue.ApiConfigurations;
 
         return [.. apis.Where(api => api.Enabled && Resolve(api.Id, out _) != null)];

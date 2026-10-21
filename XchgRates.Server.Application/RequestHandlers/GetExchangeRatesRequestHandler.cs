@@ -47,6 +47,14 @@ internal class GetExchangeRatesRequestHandler(
         //todo: add protection against inaccurate date matches (source and target currencies may have incomplete data)
 
         //todo: add protection against empty data
+        //todo: test case: endDate past DateTime.Now
+        //todo: pass around provider restrictions info
+        //todo: CSS
+        //todo: frontend error notifications
+        //todo: default currency selection
+        //todo: currency validation: don't allow same source and target currency
+        //todo: pass date format from appsettings to frontend
+        //todo: limit date range picker up to today
         var minRate = targetPerSourceRates.Select(x => x.Rate).Min();
         var maxRate = targetPerSourceRates.Select(x => x.Rate).Max();
         var avgRate = targetPerSourceRates.Select(x => x.Rate).Average();

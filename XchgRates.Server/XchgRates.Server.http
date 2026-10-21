@@ -1,10 +1,5 @@
 @XchgRates.Server_HostAddress = https://localhost:7137
 
-GET {{XchgRates.Server_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
-
 GET {{XchgRates.Server_HostAddress}}/api
 Accept: application/json
 

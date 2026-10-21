@@ -1,29 +1,72 @@
-<h1 id="tableLabel">Weather forecast</h1>
+<h1 id="tableLabel">Exchange rate browser</h1>
 
-<p>This component demonstrates fetching data from the server.</p>
+@if (receivedApis()?.length > 0) {
 
-@if(forecasts().length === 0) {
-<p><em>Loading... Please refresh once the ASP.NET backend has started. See <a href="https://aka.ms/jspsintegrationangular">https://aka.ms/jspsintegrationangular</a> for more details.</em></p>
+  <h4>Wybierz dostawcę danych kursów</h4>
+  <mat-form-field>
+    <mat-label>Dostawca danych</mat-label>
+    <mat-select [(ngModel)]="selectedApi">
+      @for (apiInfo of receivedApis(); track apiInfo.apiId) {
+      <mat-option [value]="apiInfo.apiId">{{apiInfo.displayName}}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (currencies.hasValue() && currencies.value() !== null) {
+    <h4>Wybierz waluty</h4>
+    <mat-form-field>
+      <mat-label>Waluta źródłowa</mat-label>
+      <mat-select [(ngModel)]="selectedSourceCurrency">
+        @for (currencyInfo of currencies.value()!.sourceCurrencies; track currencyInfo.code) {
+        <mat-option [value]="currencyInfo.code">{{`${currencyInfo.code} - ${currencyInfo.name}`}}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Waluta docelowa</mat-label>
+      <mat-select [(ngModel)]="selectedTargetCurrency">
+        @for (currencyInfo of currencies.value()!.targetCurrencies; track currencyInfo.code) {
+        <mat-option [value]="currencyInfo.code">{{`${currencyInfo.code} - ${currencyInfo.name}`}}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  } @else {
+    <p>Póki co nie udało się załadować walut</p>
+    <button matButton="tonal" (click)="loadCurrencies()">Sprawdź ponownie</button>
+  }
+
+  <mat-form-field>
+    <mat-label>Wybierz zakres dat</mat-label>
+    <mat-date-range-input [rangePicker]="picker">
+      <input matStartDate placeholder="Start date" [(ngModel)]="selectedStartDate">
+      <input matEndDate placeholder="End date" [(ngModel)]="selectedEndDate">
+    </mat-date-range-input>
+    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-date-range-picker #picker></mat-date-range-picker>
+  </mat-form-field>
+
+  <button matButton="filled" (click)="onShowRates()" [disabled]="!selectedSourceCurrency() || !selectedTargetCurrency()">Pokaż kursy</button>
+
+  @if (ratesData()) {
+    <h4>Kursy</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Przelicznik (1 {{ratesData()!.source.code}} = x {{ratesData()!.target.code}})</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (rate of ratesData()!.rates; track $index) {
+          <tr>
+            <td>{{rate.date | date:'yyyy-MM-dd'}}</td>
+            <td>{{rate.rate | number:'1.4-4'}}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
 } @else {
-<table>
-  <thead>
-    <tr>
-      <th>Date</th>
-      <th>Temp. (C)</th>
-      <th>Temp. (F)</th>
-      <th>Summary</th>
-    </tr>
-  </thead>
-  <tbody>
-    @for(forecast of forecasts(); track forecast.date) {
-    <tr>
-      <td>{{ forecast.date }}</td>
-      <td>{{ forecast.temperatureC }}</td>
-      <td>{{ forecast.temperatureF }}</td>
-      <td>{{ forecast.summary }}</td>
-    </tr>
-    }
-  </tbody>
-</table>
-<button (click)="onClickGenerate()">Generate</button>
+<p>Dostawcy danych są w tej chwili niedostępni.</p>
+<button matButton="tonal" (click)="loadApis()">Sprawdź ponownie</button>
 }

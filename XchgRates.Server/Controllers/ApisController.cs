@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using XchgRates.Server.Application.RequestHandlers;
+using XchgRates.Server.Models;
 
 namespace XchgRates.Server.Controllers;
 
@@ -14,7 +15,7 @@ public class ApisController(
     public IActionResult GetApis()
     {
         var result = getSupportedApisRequestHandler.Handle();
-        return Ok(result);
+        return Ok(ApiResponse.ForSuccess(result));
     }
 
     [HttpGet("currencies")]
@@ -23,6 +24,6 @@ public class ApisController(
         CancellationToken cancellationToken = default)
     {
         var currencies = getCurrenciesRequestHandler.Handle(apiId, cancellationToken);
-        return Ok(currencies);
+        return Ok(ApiResponse.ForSuccess(currencies));
     }
 }

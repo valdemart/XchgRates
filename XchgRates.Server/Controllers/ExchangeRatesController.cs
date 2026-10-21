@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using XchgRates.Server.Application.RequestHandlers;
+using XchgRates.Server.Models;
 
 namespace XchgRates.Server.Controllers;
 
@@ -19,6 +20,6 @@ public class ExchangeRatesController(
         CancellationToken cancellationToken = default)
     {
         var result = await getExchangeRatesRequestHandler.Handle(apiId, sourceCurrencyCode, targetCurrencyCode, startDate, endDate, cancellationToken);
-        return Ok(result);
+        return Ok(ApiResponse.ForSuccess(result));
     }
 }
