@@ -67,6 +67,15 @@
           </tr>
         }
       </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2">
+            <p>Minimalny kurs: {{ratesData()!.minRate | number:'1.4-4'}}</p>
+            <p>Maksymalny kurs: {{ratesData()!.maxRate | number:'1.4-4'}}</p>
+            <p>Średni kurs: {{ratesData()!.avgRate | number:'1.4-4'}}</p>
+          </td>
+        </tr>
+      </tfoot>
     </table>
   }
 } @else {

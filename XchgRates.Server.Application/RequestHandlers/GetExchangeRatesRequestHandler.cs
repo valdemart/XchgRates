@@ -46,9 +46,15 @@ internal class GetExchangeRatesRequestHandler(
             throw new NoDataException(targetCurrency);
 
         var targetPerSourceRates = sourceRates.OrderBy(r => r.Date)
-            .Zip(targetRates.OrderBy(r => r.Date), (sourceRate, targetRate) => new GetExchangeRatesResponseRate(targetRate.Date, sourceRate.Rate / targetRate.Rate))
+            .GroupJoin(
+                targetRates.OrderBy(r => r.Date),
+                sourceRate => sourceRate.Date,
+                targetRate => targetRate.Date,
+                (sourceRate, targetRates) => targetRates.Select(targetRate => new GetExchangeRatesResponseRate(targetRate.Date, sourceRate.Rate / targetRate.Rate)).FirstOrDefault()
+            )
+            .Where(rate => rate != null)
+            .Select(rate => rate!)
             .ToArray();
-        //todo: add protection against inaccurate date matches (source and target currencies may have incomplete data)
 
         if (targetPerSourceRates.Length == 0)
             throw new NoDataException();
