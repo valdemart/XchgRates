@@ -65,7 +65,7 @@ internal class NBPExchangeRateProvider(
             }
         }
 
-        var content = JsonSerializer.Deserialize<ExchangeRateEndpointResponse>(strContent)
+        var content = JsonSerializer.Deserialize<ExchangeRateEndpointResponse>(strContent, JsonSerializerOptions.Web)
             ?? throw new NoDataException(currency);
 
         return [.. content.Rates

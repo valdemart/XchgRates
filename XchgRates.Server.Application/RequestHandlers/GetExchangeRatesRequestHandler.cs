@@ -59,8 +59,11 @@ internal class GetExchangeRatesRequestHandler(
         if (targetPerSourceRates.Length == 0)
             throw new NoDataException();
 
-        //todo: CSS
         //todo: README.md with local setup & startup
+        //todo: layout & CSS
+        //optionals:
+        //todo: unit tests
+        //todo: currency converter UI
 
         //format response
         var minRate = targetPerSourceRates.Select(x => x.Rate).Min();
