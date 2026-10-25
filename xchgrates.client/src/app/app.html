@@ -1,7 +1,14 @@
-<h1 id="tableLabel">Exchange rate browser</h1>
+<table>
+  <thead>
+    <tr>
+      <td><h1 id="tableLabel">Exchange rate browser</h1></td>
+    </tr>
+  </thead>
+  <tbody>
 
 @if (receivedApis()?.length > 0) {
-
+    <tr>
+      <td>
   <h4>Wybierz dostawcę danych kursów</h4>
   <mat-form-field>
     <mat-label>Dostawca danych</mat-label>
@@ -11,8 +18,12 @@
       }
     </mat-select>
   </mat-form-field>
+      </td>
+    </tr>
 
   @if (currencies.hasValue() && currencies.value() !== null) {
+    <tr>
+      <td>
     <h4>Wybierz waluty</h4>
     <mat-form-field>
       <mat-label>Waluta źródłowa</mat-label>
@@ -33,13 +44,22 @@
     @if (equalCurrencies()) {
       <mat-error>Wybrane waluty nie powinny być takie same</mat-error>
     }
+      </td>
+    </tr>
   } @else {
+    <tr>
+      <td>
     <p>Póki co nie udało się załadować walut</p>
     <button matButton="tonal" (click)="loadCurrencies()">Sprawdź ponownie</button>
+      </td>
+    </tr>
   }
 
+    <tr>
+      <td>
+        <h4>Wybierz przedział czasu</h4>
   <mat-form-field *redrawOnChange="dateFormat()">
-    <mat-label>Wybierz zakres dat</mat-label>
+          <mat-label>Przedział czasu</mat-label>
     <mat-date-range-input [rangePicker]="picker" [dateFilter]="dateFilter">
       <input matStartDate placeholder="Start date" [(ngModel)]="selectedStartDate" disabled>
       <input matEndDate placeholder="End date" [(ngModel)]="selectedEndDate" disabled>
@@ -47,10 +67,18 @@
     <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
     <mat-date-range-picker #picker disabled="false"></mat-date-range-picker>
   </mat-form-field>
+      </td>
+    </tr>
 
-  <button matButton="filled" (click)="onShowRates()" [disabled]="!canGetRates()">Przelicz</button>
+    <tr>
+      <td>
+        <button matButton="filled" (click)="onShowRates()" [disabled]="!canGetRates()">Sprawdź kursy</button>
+      </td>
+    </tr>
 
   @if (ratesData()) {
+    <tr>
+      <td>
     <h4>Kursy</h4>
     <table>
       <thead>
@@ -77,8 +105,18 @@
         </tr>
       </tfoot>
     </table>
+      </td>
+    </tr>
   }
+
 } @else {
+    <tr>
+      <td>
 <p>Dostawcy danych są w tej chwili niedostępni.</p>
 <button matButton="tonal" (click)="loadApis()">Sprawdź ponownie</button>
+      </td>
+    </tr>
 }
+
+  </tbody>
+</table>
