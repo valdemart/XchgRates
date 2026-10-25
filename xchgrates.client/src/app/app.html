@@ -30,6 +30,9 @@
         }
       </mat-select>
     </mat-form-field>
+    @if (equalCurrencies()) {
+      <mat-error>Wybrane waluty nie powinny być takie same</mat-error>
+    }
   } @else {
     <p>Póki co nie udało się załadować walut</p>
     <button matButton="tonal" (click)="loadCurrencies()">Sprawdź ponownie</button>
@@ -45,7 +48,7 @@
     <mat-date-range-picker #picker disabled="false"></mat-date-range-picker>
   </mat-form-field>
 
-  <button matButton="filled" (click)="onShowRates()" [disabled]="!selectedSourceCurrency() || !selectedTargetCurrency()">Pokaż kursy</button>
+  <button matButton="filled" (click)="onShowRates()" [disabled]="!canGetRates()">Przelicz</button>
 
   @if (ratesData()) {
     <h4>Kursy</h4>

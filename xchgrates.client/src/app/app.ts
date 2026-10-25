@@ -48,10 +48,22 @@ export class App implements OnInit {
   public selectedSourceCurrency = signal<string | null>(null);
   public selectedTargetCurrency = signal<string | null>(null);
 
-  public selectedStartDate = signal<Date | null>(null);
-  public selectedEndDate = signal<Date | null>(null);
+  public equalCurrencies = computed(() => {
+    const src = this.selectedSourceCurrency();
+    const tgt = this.selectedTargetCurrency();
+
+    return !!src && !!tgt && src === tgt;
+  });
+
   public selectedStartDate = signal<Date | null>(new Date());
   public selectedEndDate = signal<Date | null>(new Date());
+
+  public canGetRates = computed(() => {
+    const src = this.selectedSourceCurrency();
+    const tgt = this.selectedTargetCurrency();
+
+    return !!src && !!tgt && !this.equalCurrencies();
+  });
 
   public ratesData = signal<GetExchangeRatesResponse | null>(null);
 
