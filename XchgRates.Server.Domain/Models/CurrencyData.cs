@@ -1,3 +1,3 @@
 ﻿namespace XchgRates.Server.Domain.Models;
 
-public sealed record CurrencyData(string Code, string Name);
+public sealed record CurrencyData(string Code, string Name, bool IsBaseCurrency = false);

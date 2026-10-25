@@ -15,7 +15,7 @@ internal class NBPExchangeRateProvider(
     private const int MaxDays = 366;
 
     private readonly CurrencyData[] _currencies = [
-        new("PLN", "Złoty"),
+        new("PLN", "Złoty", IsBaseCurrency: true),
         new("EUR", "Euro"),
         new("GBP", "Funt brytyjski"),
         new("USD", "Dolar amerykański"),
@@ -27,6 +27,9 @@ internal class NBPExchangeRateProvider(
     {
         if (endDate.ToDateTime(TimeOnly.MinValue) - startDate.ToDateTime(TimeOnly.MinValue) > TimeSpan.FromDays(MaxDays))
             throw new ProviderLimitsViolationException($"Odpytywany zakres może obejmować maksymalnie {MaxDays} dni");
+
+        if (currency.IsBaseCurrency)
+            return [.. GetBaseCurrencyData(currency, startDate, endDate)];
 
         var client = httpClientFactory.CreateClient();
 
@@ -95,6 +98,18 @@ internal class NBPExchangeRateProvider(
 
     private static bool IsCorrectDate(DateOnly date)
         => date.DayOfWeek is not DayOfWeek.Saturday and not DayOfWeek.Sunday;
+
+    private static IEnumerable<ExchangeRate> GetBaseCurrencyData(CurrencyData currency, DateOnly startDate, DateOnly endDate)
+    {
+        if (!currency.IsBaseCurrency)
+            yield break;
+
+        for (DateOnly currentDate = startDate; currentDate <= endDate; currentDate = currentDate.AddDays(1))
+        {
+            if (IsCorrectDate(currentDate))
+                yield return new(currency, currentDate, 1.0M);
+        }
+    }
 
     internal record ExchangeRateEndpointResponse(string Table, string Currency, string Code, ExchangeRateEndpointRateData[] Rates);
     internal record ExchangeRateEndpointRateData(string No, DateOnly EffectiveDate, decimal Mid);
