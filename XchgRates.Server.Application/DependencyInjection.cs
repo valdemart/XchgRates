@@ -9,6 +9,9 @@ public static class DependencyInjection
     {
         public IServiceCollection AddApplicationServices()
         {
+            //settings requests
+            services.AddTransient<IGetSettingsRequestHandler, GetSettingsRequestHandler>();
+
             //exchange rate & apis requests
             services.AddTransient<IGetSupportedApisRequestHandler, GetSupportedApisRequestHandler>();
             services.AddTransient<IGetExchangeRatesRequestHandler, GetExchangeRatesRequestHandler>();

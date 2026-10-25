@@ -12,3 +12,8 @@ Accept: application/json
 
 GET {{XchgRates.Server_HostAddress}}/api/exchangeRates?apiId=NBP&sourceCurrencyCode=EUR&targetCurrencyCode=GBP&startDate=2026-10-01
 Accept: application/json
+
+###
+
+GET {{XchgRates.Server_HostAddress}}/api/settings
+Accept: application/json
