@@ -1,17 +1,19 @@
-﻿using Microsoft.Extensions.Options;
-using System.Net.Http.Json;
+﻿using System.Net;
+using System.Text.Json;
+using XchgRates.Server.Application.Exceptions;
 using XchgRates.Server.Domain.Models;
+using XchgRates.Server.Infrastructure.Extensions;
 
 namespace XchgRates.Server.Infrastructure.Services.ExchangeRateProviders;
 
 internal class NBPExchangeRateProvider(
-    IHttpClientFactory httpClientFactory,
-    IOptionsMonitor<Settings> settingsMonitor)
-    : ExchangeRateProviderBase(settingsMonitor)
+    IHttpClientFactory httpClientFactory)
+    : ExchangeRateProviderBase
 {
     private const string ExchangeRateEndpointPattern = "{0}/api/exchangerates/rates/a/{1}/{2:yyyy-MM-dd}/{3:yyyy-MM-dd}/?format=json";
 
-    private readonly IEnumerable<CurrencyData> _currencies = [
+    private const int MaxDays = 366;
+
     private readonly CurrencyData[] _currencies = [
         new("PLN", "Złoty"),
         new("EUR", "Euro"),
@@ -21,12 +23,10 @@ internal class NBPExchangeRateProvider(
         new("JPY", "Jeny")
     ];
 
-    public override async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync(ApiConfiguration configuration, CurrencyData currency, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
+    public override async Task<ExchangeRate[]> GetExchangeRatesAsync(ApiConfiguration configuration, CurrencyData currency, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
     {
-        if (endDate < startDate)
-            (endDate, startDate) = (startDate, endDate);
-        if (endDate.ToDateTime(TimeOnly.MinValue) - startDate.ToDateTime(TimeOnly.MinValue) > TimeSpan.FromDays(93))
-            return []; //todo: log and report too wide date range
+        if (endDate.ToDateTime(TimeOnly.MinValue) - startDate.ToDateTime(TimeOnly.MinValue) > TimeSpan.FromDays(MaxDays))
+            throw new ProviderLimitsViolationException($"Odpytywany zakres może obejmować maksymalnie {MaxDays} dni");
 
         var client = httpClientFactory.CreateClient();
 
@@ -36,13 +36,37 @@ internal class NBPExchangeRateProvider(
             startDate,
             endDate);
 
-        var response = await client.GetAsync(url, cancellationToken);
-        if (!response.IsSuccessStatusCode) //todo: retry policy
-            return [];
+        var response = await client.RetryOnError(
+            c => c.GetAsync(url, cancellationToken),
+            (statusCode, attempt) => attempt < 3 && statusCode switch
+            {
+                HttpStatusCode.RequestTimeout => true, //timeout? try again after a while
+                HttpStatusCode.NotFound => false, //no data? give up
+                HttpStatusCode.BadRequest => false, //bad request? give up
+                _ => false,
+            },
+            (_, attempt) => (int)(Math.Pow(2, attempt - 1) * 1000));
 
-        var content = await response.Content.ReadFromJsonAsync<ExchangeRateEndpointResponse>(cancellationToken);
-        if (content == null)
-            return []; //todo: log and report empty response
+        var strContent = await response.Content.ReadAsStringAsync(cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.NotFound:
+                    throw new NoDataException(currency);
+
+                case HttpStatusCode.BadRequest when strContent.Contains("Przekroczony limit"):
+                    throw new ProviderLimitsViolationException($"Odpytywany zakres może obejmować maksymalnie {MaxDays} dni");
+                case HttpStatusCode.BadRequest:
+                    throw new Exception("Błąd aplikacji - skontaktuj się z administratorem");
+
+                default:
+                    break;
+            }
+        }
+
+        var content = JsonSerializer.Deserialize<ExchangeRateEndpointResponse>(strContent)
+            ?? throw new NoDataException(currency);
 
         return [.. content.Rates
             .Select(r => new ExchangeRate(currency, r.EffectiveDate, r.Mid))

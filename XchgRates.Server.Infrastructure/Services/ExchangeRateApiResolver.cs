@@ -13,8 +13,6 @@ internal class ExchangeRateApiResolver(
 {
     public ApiConfiguration[] GetSupportedApis()
     {
-        //todo: cache results based on settingsMonitor.OnChange
-
         var apis = settingsMonitor.CurrentValue.ApiConfigurations;
 
         return [.. apis.Where(api => api.Enabled && Resolve(api.Id, out _) != null)];
@@ -37,6 +35,6 @@ internal static class ExchangeRateApiProviderDIExtensions
     {
         public IServiceCollection AddExchangeRateProvider<TExchangeRateProvider>(string providerId)
             where TExchangeRateProvider : class, IExchangeRateProvider
-            => services.AddKeyedSingleton<IExchangeRateProvider, TExchangeRateProvider>("ExchangeRateProvider:" + providerId); //todo: log: duplicate key
+            => services.AddKeyedSingleton<IExchangeRateProvider, TExchangeRateProvider>("ExchangeRateProvider:" + providerId);
     }
 }

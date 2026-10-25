@@ -1,4 +1,5 @@
-﻿using XchgRates.Server.Application.Interfaces;
+﻿using XchgRates.Server.Application.Exceptions;
+using XchgRates.Server.Application.Interfaces;
 using XchgRates.Server.Domain.Models;
 
 namespace XchgRates.Server.Application.RequestHandlers;
@@ -17,44 +18,45 @@ internal class GetExchangeRatesRequestHandler(
 {
     public async Task<GetExchangeRatesResponse?> Handle(string apiId, string sourceCurrencyCode, string targetCurrencyCode, DateOnly? startDate, DateOnly? endDate, CancellationToken cancellationToken)
     {
-        //todo: frontend niech pokazuje placeholder "Dzisiaj" w datach
-        //todo: zwracanie błędów walidacji (frontend też niech sprawdza samodzielnie żeby odciążyć api)
+        //validate arguments
+        var ratesProvider = exchangeRateApiResolver.Resolve(apiId, out var apiConfiguration)
+            ?? throw new UnsupportedApiException();
+        if (apiConfiguration?.Enabled is not true)
+            throw new DisabledApiException();
 
-        var ratesProvider = exchangeRateApiResolver.Resolve(apiId, out var apiConfiguration);
-        if (ratesProvider == null || apiConfiguration?.Enabled is not true)
-            return null; //todo: log and return to user: unsupported or disabled api
+        var sourceCurrency = ratesProvider.GetCurrency(apiConfiguration, sourceCurrencyCode)
+            ?? throw new UnsupportedSourceCurrencyException();
 
-        var sourceCurrency = ratesProvider.GetCurrency(apiConfiguration, sourceCurrencyCode);
-        if (sourceCurrency == null)
-            return null; //todo: log and return to user: unsupported source currency
+        var targetCurrency = ratesProvider.GetCurrency(apiConfiguration, targetCurrencyCode)
+            ?? throw new UnsupportedTargetCurrencyException();
 
-        var targetCurrency = ratesProvider.GetCurrency(apiConfiguration, targetCurrencyCode);
-        if (targetCurrency == null)
-            return null; //todo: log and return to user: unsupported target currency
-
-        startDate ??= DateOnly.FromDateTime(DateTime.Now);
-        endDate ??= DateOnly.FromDateTime(DateTime.Now);
+        //limit arguments and fix acceptable argument issues
+        startDate = CorrectDate(startDate);
+        endDate = CorrectDate(endDate);
 
         if (endDate < startDate)
             (endDate, startDate) = (startDate, endDate);
 
+        //get rates
         var sourceRates = await ratesProvider.GetExchangeRatesAsync(apiConfiguration, sourceCurrency, startDate.Value, endDate.Value, cancellationToken);
+        if (sourceRates.Length == 0)
+            throw new NoDataException(sourceCurrency);
         var targetRates = await ratesProvider.GetExchangeRatesAsync(apiConfiguration, targetCurrency, startDate.Value, endDate.Value, cancellationToken);
+        if (targetRates.Length == 0)
+            throw new NoDataException(targetCurrency);
 
         var targetPerSourceRates = sourceRates.OrderBy(r => r.Date)
             .Zip(targetRates.OrderBy(r => r.Date), (sourceRate, targetRate) => new GetExchangeRatesResponseRate(targetRate.Date, sourceRate.Rate / targetRate.Rate))
             .ToArray();
         //todo: add protection against inaccurate date matches (source and target currencies may have incomplete data)
 
-        //todo: add protection against empty data
-        //todo: test case: endDate past DateTime.Now
-        //todo: pass around provider restrictions info
+        if (targetPerSourceRates.Length == 0)
+            throw new NoDataException();
+
         //todo: CSS
-        //todo: frontend error notifications
-        //todo: default currency selection
-        //todo: currency validation: don't allow same source and target currency
-        //todo: pass date format from appsettings to frontend
-        //todo: limit date range picker up to today
+        //todo: README.md with local setup & startup
+
+        //format response
         var minRate = targetPerSourceRates.Select(x => x.Rate).Min();
         var maxRate = targetPerSourceRates.Select(x => x.Rate).Max();
         var avgRate = targetPerSourceRates.Select(x => x.Rate).Average();
@@ -66,5 +68,14 @@ internal class GetExchangeRatesRequestHandler(
             maxRate,
             avgRate,
             targetPerSourceRates);
+    }
+
+    private static DateOnly CorrectDate(DateOnly? date)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+
+        return date == null || date.Value > today
+            ? today
+            : date.Value;
     }
 }

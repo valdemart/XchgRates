@@ -1,1 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
+.mat-mdc-snack-bar-container.lucky-snack-bar .mat-mdc-snackbar-surface {
+  background-color: #00a10d !important;
+}
+
+.mat-mdc-snack-bar-container.sad-snack-bar .mat-mdc-snackbar-surface {
+  background-color: #b20000;
+}

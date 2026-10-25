@@ -1,4 +1,5 @@
-﻿using XchgRates.Server.Models;
+﻿using XchgRates.Server.Application.Exceptions;
+using XchgRates.Server.Models;
 
 namespace XchgRates.Server.Middlewares;
 
@@ -10,6 +11,12 @@ public class GlobalExceptionHandlingMiddleware(
         try
         {
             await next(context);
+        }
+        catch (IntentionalException intentionalEx)
+        {
+            logger.LogWarning("Code-induced error occured: {Message}", intentionalEx.Message);
+            context.Response.StatusCode = (int)intentionalEx.StatusCode;
+            await context.Response.WriteAsJsonAsync(ApiResponse.ForError(intentionalEx.Message).Value);
         }
         catch (Exception ex)
         {
