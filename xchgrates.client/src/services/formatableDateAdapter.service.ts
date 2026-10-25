@@ -41,8 +41,6 @@ export const CUSTOM_DATE_FORMATS = {
   },
 };
 
-
-
 export function provideFormatableDateProvider(): Provider[] {
   return [
     { provide: DateAdapter, useClass: FormatableDateAdapter, deps: [MAT_DATE_LOCALE] },

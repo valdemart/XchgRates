@@ -60,12 +60,6 @@ internal class GetExchangeRatesRequestHandler(
         if (targetPerSourceRates.Length == 0)
             throw new NoDataException();
 
-        //todo: README.md with local setup & startup
-        //optionals:
-        //todo: unit tests
-        //todo: currency converter UI
-        //todo: isalive/health endpoint instead of initial retrying
-
         //format response
         var minRate = targetPerSourceRates.Select(x => x.Rate).Min();
         var maxRate = targetPerSourceRates.Select(x => x.Rate).Max();
