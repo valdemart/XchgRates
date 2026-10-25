@@ -9,6 +9,8 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Logging.AddFile(builder.Configuration.GetSection("SerilogSettings"));
+
         builder.Services.AddWebAppServices();
         builder.Services.AddInfrastructureServices(builder.Configuration);
         builder.Services.AddApplicationServices();
