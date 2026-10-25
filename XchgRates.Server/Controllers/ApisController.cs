@@ -15,7 +15,7 @@ public class ApisController(
     public IActionResult GetApis()
     {
         var result = getSupportedApisRequestHandler.Handle();
-        return Ok(ApiResponse.ForSuccess(result));
+        return ApiResponse.ForSuccess(result);
     }
 
     [HttpGet("currencies")]
@@ -24,6 +24,6 @@ public class ApisController(
         CancellationToken cancellationToken = default)
     {
         var currencies = getCurrenciesRequestHandler.Handle(apiId, cancellationToken);
-        return Ok(ApiResponse.ForSuccess(currencies));
+        return ApiResponse.ForSuccess(currencies);
     }
 }

@@ -13,7 +13,7 @@ public class GlobalExceptionHandlingMiddleware : IMiddleware
         catch (Exception ex)
         {
             context.Response.StatusCode = 500;
-            await context.Response.WriteAsJsonAsync(ApiResponse.ForError(ex.Message));
+            await context.Response.WriteAsJsonAsync(ApiResponse.ForError(ex.Message).Value);
         }
     }
 }

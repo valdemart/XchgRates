@@ -20,6 +20,6 @@ public class ExchangeRatesController(
         CancellationToken cancellationToken = default)
     {
         var result = await getExchangeRatesRequestHandler.Handle(apiId, sourceCurrencyCode, targetCurrencyCode, startDate, endDate, cancellationToken);
-        return Ok(ApiResponse.ForSuccess(result));
+        return ApiResponse.ForSuccess(result);
     }
 }

@@ -1,12 +1,38 @@
-﻿namespace XchgRates.Server.Models;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
-public record ApiResponse<T>(bool Success, T? Result, string? Error) : ApiResponse(Success, Error);
+namespace XchgRates.Server.Models;
 
-public record ApiResponse(bool Success, string? Error)
+public class ApiResponse
 {
-    public static ApiResponse<T> ForSuccess<T>(T? result)
-        => new(true, result, null);
+    public bool Success { get; init; }
+    public object? Result { get; init; }
+    public string? Error { get; init; }
 
-    public static ApiResponse ForError(string error)
-        => new(false, error);
+    private ApiResponse() { }
+
+    public static ObjectResult ForSuccess(object? result, HttpStatusCode statusCode = HttpStatusCode.OK)
+        => new(
+            new ApiResponse
+            {
+                Success = true,
+                Result = result,
+                Error = null,
+            })
+        {
+            StatusCode = (int)statusCode,
+        };
+
+    public static ObjectResult ForError(string error, HttpStatusCode statusCode = HttpStatusCode.BadRequest)
+        => new(
+            new ApiResponse
+            {
+                Success = false,
+                Result = null,
+                Error = error,
+            })
+        {
+            StatusCode = (int)statusCode,
+        };
 }
