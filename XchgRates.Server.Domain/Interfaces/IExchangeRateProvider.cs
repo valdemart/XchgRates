@@ -6,5 +6,6 @@ public interface IExchangeRateProvider
 {
     CurrencyData[] GetCurrencies(ApiConfiguration configuration);
     CurrencyData? GetCurrency(ApiConfiguration configuration, string code);
-    public Task<ExchangeRate[]> GetExchangeRatesAsync(ApiConfiguration configuration, CurrencyData currency, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken);
+    Task<ExchangeRate[]> GetExchangeRatesAsync(ApiConfiguration configuration, CurrencyData currency, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken);
+    DateOnly GetNearestToday();
 }

@@ -6,67 +6,67 @@
   </thead>
   <tbody>
 
-@if (receivedApis()?.length > 0) {
+    @if (receivedApis()?.length > 0) {
     <tr>
       <td>
-  <h4>Wybierz dostawcę danych kursów</h4>
-  <mat-form-field>
-    <mat-label>Dostawca danych</mat-label>
-    <mat-select [(ngModel)]="selectedApi">
-      @for (apiInfo of receivedApis(); track apiInfo.apiId) {
-      <mat-option [value]="apiInfo.apiId">{{apiInfo.displayName}}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
+        <h4>Wybierz dostawcę danych kursów</h4>
+        <mat-form-field>
+          <mat-label>Dostawca danych</mat-label>
+          <mat-select [(ngModel)]="selectedApi">
+            @for (apiInfo of receivedApis(); track apiInfo.apiId) {
+            <mat-option [value]="apiInfo">{{apiInfo.displayName}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
       </td>
     </tr>
 
-  @if (currencies.hasValue() && currencies.value() !== null) {
+    @if (currencies.hasValue() && currencies.value() !== null) {
     <tr>
       <td>
-    <h4>Wybierz waluty</h4>
-    <mat-form-field>
-      <mat-label>Waluta źródłowa</mat-label>
-      <mat-select [(ngModel)]="selectedSourceCurrency">
-        @for (currencyInfo of currencies.value()!.sourceCurrencies; track currencyInfo.code) {
-        <mat-option [value]="currencyInfo.code">{{`${currencyInfo.code} - ${currencyInfo.name}`}}</mat-option>
+        <h4>Wybierz waluty</h4>
+        <mat-form-field>
+          <mat-label>Waluta źródłowa</mat-label>
+          <mat-select [(ngModel)]="selectedSourceCurrency">
+            @for (currencyInfo of currencies.value()!.sourceCurrencies; track currencyInfo.code) {
+            <mat-option [value]="currencyInfo.code">{{`${currencyInfo.code} - ${currencyInfo.name}`}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Waluta docelowa</mat-label>
+          <mat-select [(ngModel)]="selectedTargetCurrency">
+            @for (currencyInfo of currencies.value()!.targetCurrencies; track currencyInfo.code) {
+            <mat-option [value]="currencyInfo.code">{{`${currencyInfo.code} - ${currencyInfo.name}`}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        @if (equalCurrencies()) {
+        <mat-error>Wybrane waluty nie powinny być takie same</mat-error>
         }
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Waluta docelowa</mat-label>
-      <mat-select [(ngModel)]="selectedTargetCurrency">
-        @for (currencyInfo of currencies.value()!.targetCurrencies; track currencyInfo.code) {
-        <mat-option [value]="currencyInfo.code">{{`${currencyInfo.code} - ${currencyInfo.name}`}}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-    @if (equalCurrencies()) {
-      <mat-error>Wybrane waluty nie powinny być takie same</mat-error>
+      </td>
+    </tr>
+    } @else {
+    <tr>
+      <td>
+        <p>Póki co nie udało się załadować walut</p>
+        <button matButton="tonal" (click)="loadCurrencies()">Sprawdź ponownie</button>
+      </td>
+    </tr>
     }
-      </td>
-    </tr>
-  } @else {
-    <tr>
-      <td>
-    <p>Póki co nie udało się załadować walut</p>
-    <button matButton="tonal" (click)="loadCurrencies()">Sprawdź ponownie</button>
-      </td>
-    </tr>
-  }
 
     <tr>
       <td>
         <h4>Wybierz przedział czasu</h4>
-  <mat-form-field *redrawOnChange="dateFormat()">
+        <mat-form-field *redrawOnChange="dateFormat()">
           <mat-label>Przedział czasu</mat-label>
-    <mat-date-range-input [rangePicker]="picker" [dateFilter]="dateFilter">
-      <input matStartDate placeholder="Start date" [(ngModel)]="selectedStartDate" disabled>
-      <input matEndDate placeholder="End date" [(ngModel)]="selectedEndDate" disabled>
-    </mat-date-range-input>
-    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-    <mat-date-range-picker #picker disabled="false"></mat-date-range-picker>
-  </mat-form-field>
+          <mat-date-range-input [rangePicker]="picker" [dateFilter]="dateFilter">
+            <input matStartDate placeholder="Start date" [(ngModel)]="selectedStartDate" disabled>
+            <input matEndDate placeholder="End date" [(ngModel)]="selectedEndDate" disabled>
+          </mat-date-range-input>
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-date-range-picker #picker disabled="false"></mat-date-range-picker>
+        </mat-form-field>
       </td>
     </tr>
 
@@ -76,47 +76,47 @@
       </td>
     </tr>
 
-  @if (ratesData()) {
+    @if (ratesData()) {
     <tr>
       <td>
-    <h4>Kursy</h4>
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Kurs (1 {{ratesData()!.source.code}} = x {{ratesData()!.target.code}})</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (rate of ratesData()!.rates; track $index) {
-          <tr>
-            <td>{{dateProvider.formatDate(rate.date)}}</td>
-            <td>{{rate.rate | number:'1.4-4'}}</td>
-          </tr>
-        }
-      </tbody>
-      <tfoot>
-        <tr>
-          <td colspan="2">
-            <p>Minimalny kurs: {{ratesData()!.minRate | number:'1.4-4'}}</p>
-            <p>Maksymalny kurs: {{ratesData()!.maxRate | number:'1.4-4'}}</p>
-            <p>Średni kurs: {{ratesData()!.avgRate | number:'1.4-4'}}</p>
-          </td>
-        </tr>
-      </tfoot>
-    </table>
+        <h4>Kursy</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Kurs (1 {{ratesData()!.source.code}} = x {{ratesData()!.target.code}})</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (rate of ratesData()!.rates; track $index) {
+            <tr>
+              <td>{{dateProvider.formatDate(rate.date)}}</td>
+              <td>{{rate.rate | number:'1.4-4'}}</td>
+            </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">
+                <p>Minimalny kurs: {{ratesData()!.minRate | number:'1.4-4'}}</p>
+                <p>Maksymalny kurs: {{ratesData()!.maxRate | number:'1.4-4'}}</p>
+                <p>Średni kurs: {{ratesData()!.avgRate | number:'1.4-4'}}</p>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
       </td>
     </tr>
-  }
+    }
 
-} @else {
+    } @else {
     <tr>
       <td>
-<p>Dostawcy danych są w tej chwili niedostępni.</p>
-<button matButton="tonal" (click)="loadApis()">Sprawdź ponownie</button>
+        <p>Dostawcy danych są w tej chwili niedostępni.</p>
+        <button matButton="tonal" (click)="loadApis()">Sprawdź ponownie</button>
       </td>
     </tr>
-}
+    }
 
   </tbody>
 </table>

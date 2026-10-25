@@ -12,4 +12,7 @@ internal abstract class ExchangeRateProviderBase
 
     public CurrencyData? GetCurrency(ApiConfiguration configuration, string currencyCode)
         => GetCurrencies(configuration).FirstOrDefault(c => string.Equals(c.Code, currencyCode, StringComparison.OrdinalIgnoreCase));
+
+    public virtual DateOnly GetNearestToday()
+        => DateOnly.FromDateTime(DateTime.Now);
 }

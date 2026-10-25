@@ -41,8 +41,8 @@ internal class NBPExchangeRateProvider(
             (statusCode, attempt) => attempt < 3 && statusCode switch
             {
                 HttpStatusCode.RequestTimeout => true, //timeout? try again after a while
-                HttpStatusCode.NotFound => false, //no data? give up
-                HttpStatusCode.BadRequest => false, //bad request? give up
+                HttpStatusCode.NotFound => attempt < 2, //no data? give up
+                HttpStatusCode.BadRequest => attempt < 2, //bad request? give up
                 _ => false,
             },
             (_, attempt) => (int)(Math.Pow(2, attempt - 1) * 1000));
@@ -80,6 +80,21 @@ internal class NBPExchangeRateProvider(
     //In theory, we could use table A call to get all supported currencies, but there's no guarantee that any call to table A always returns all supported currencies.
     public override CurrencyData[] GetCurrencies(ApiConfiguration configuration)
         => _currencies;
+
+    public override DateOnly GetNearestToday()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+
+        if (!IsCorrectDate(today))
+            today = today.AddDays(-1);
+        if (today.DayOfWeek == DayOfWeek.Saturday)
+            today = today.AddDays(-1);
+
+        return today;
+    }
+
+    private static bool IsCorrectDate(DateOnly date)
+        => date.DayOfWeek is not DayOfWeek.Saturday and not DayOfWeek.Sunday;
 
     internal record ExchangeRateEndpointResponse(string Table, string Currency, string Code, ExchangeRateEndpointRateData[] Rates);
     internal record ExchangeRateEndpointRateData(string No, DateOnly EffectiveDate, decimal Mid);

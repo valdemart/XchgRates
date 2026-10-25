@@ -2,7 +2,7 @@
 
 namespace XchgRates.Server.Application.RequestHandlers;
 
-public sealed record SupportedApi(string ApiId, string DisplayName);
+public sealed record SupportedApi(string ApiId, string DisplayName, DateOnly NearestToday);
 
 public interface IGetSupportedApisRequestHandler
 {
@@ -15,10 +15,10 @@ internal class GetSupportedApisRequestHandler(
 {
     public SupportedApi[] Handle()
     {
-        var apis = exchangeRateApiResolver.GetSupportedApis();
+        var supportedApis = exchangeRateApiResolver.GetSupportedApis();
 
-        return [.. apis
-            .OrderBy(api => api.DisplayName)
-            .Select(api => new SupportedApi(api.Id, api.DisplayName))];
+        return [.. supportedApis
+            .OrderBy(supportedApi => supportedApi.Configuration.DisplayName)
+            .Select(supportedApi => new SupportedApi(supportedApi.Configuration.Id, supportedApi.Configuration.DisplayName, supportedApi.Provider.GetNearestToday()))];
     }
 }

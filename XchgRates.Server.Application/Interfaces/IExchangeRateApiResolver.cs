@@ -5,6 +5,6 @@ namespace XchgRates.Server.Application.Interfaces;
 
 public interface IExchangeRateApiResolver
 {
-    ApiConfiguration[] GetSupportedApis();
+    (IExchangeRateProvider Provider, ApiConfiguration Configuration)[] GetSupportedApis();
     IExchangeRateProvider? Resolve(string apiId, out ApiConfiguration? apiConfiguration);
 }

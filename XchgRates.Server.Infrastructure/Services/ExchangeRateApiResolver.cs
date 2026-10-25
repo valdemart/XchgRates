@@ -11,11 +11,24 @@ internal class ExchangeRateApiResolver(
     IOptionsMonitor<Settings> settingsMonitor)
     : IExchangeRateApiResolver
 {
-    public ApiConfiguration[] GetSupportedApis()
+    public (IExchangeRateProvider Provider, ApiConfiguration Configuration)[] GetSupportedApis()
     {
         var apis = settingsMonitor.CurrentValue.ApiConfigurations;
 
-        return [.. apis.Where(api => api.Enabled && Resolve(api.Id, out _) != null)];
+        var result = new List<(IExchangeRateProvider Provider, ApiConfiguration Configuration)>();
+        foreach (var api in apis)
+        {
+            if (!api.Enabled)
+                continue;
+
+            var provider = Resolve(api.Id, out _);
+            if (provider == null)
+                continue;
+
+            result.Add((Provider: provider, Configuration: api));
+        }
+
+        return [.. result];
     }
 
     public IExchangeRateProvider? Resolve(string apiId, out ApiConfiguration? apiConfiguration)

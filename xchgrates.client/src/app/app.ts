@@ -39,7 +39,7 @@ export class App implements OnInit {
   public dateFormat = computed<string>(() => this.dateProvider.dateFormat());
 
   public receivedApis = signal<GetApisResponse[]>([]);
-  public selectedApi = signal<string | null>(null);
+  public selectedApi = signal<GetApisResponse | null>(null);
 
   public currencies = resource({
     params: () => ({ newSelectedApi: this.selectedApi() }),
@@ -82,17 +82,22 @@ export class App implements OnInit {
       this.selectedApi.set(null);
     }
     if (newApisSet.length > 0 && currentSelection === null) {
-      this.selectedApi.set(newApisSet[0].apiId);
+      this.selectedApi.set(newApisSet[0]);
     }
 
   }
 
-  async onSelectedApiChange(newSelectedApi: string | null): Promise<GetCurrenciesResponse | null> {
+  async onSelectedApiChange(newSelectedApi: GetApisResponse | null): Promise<GetCurrenciesResponse | null> {
     if (newSelectedApi === null) {
       return null;
     }
 
-    return await this.apisService.getCurrencies(newSelectedApi);
+    if (newSelectedApi && (!this.dateFilter(this.selectedStartDate()) || !this.dateFilter(this.selectedEndDate()))) {
+      this.selectedStartDate.set(newSelectedApi.nearestToday);
+      this.selectedEndDate.set(newSelectedApi.nearestToday);
+    }
+
+    return await this.apisService.getCurrencies(newSelectedApi.apiId);
   }
 
   async loadCurrencies() {
@@ -111,7 +116,7 @@ export class App implements OnInit {
     //validate
     if (selectedApi && sourceCurrency && targetCurrency) {
       newRates = await this.exchangeRatesService.getExchangeRates(
-        selectedApi,
+        selectedApi.apiId,
         sourceCurrency,
         targetCurrency,
         startDate,

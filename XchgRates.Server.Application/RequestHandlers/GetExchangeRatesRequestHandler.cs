@@ -1,5 +1,6 @@
 ﻿using XchgRates.Server.Application.Exceptions;
 using XchgRates.Server.Application.Interfaces;
+using XchgRates.Server.Domain.Interfaces;
 using XchgRates.Server.Domain.Models;
 
 namespace XchgRates.Server.Application.RequestHandlers;
@@ -31,8 +32,8 @@ internal class GetExchangeRatesRequestHandler(
             ?? throw new UnsupportedTargetCurrencyException();
 
         //limit arguments and fix acceptable argument issues
-        startDate = CorrectDate(startDate);
-        endDate = CorrectDate(endDate);
+        startDate = CorrectDate(ratesProvider, startDate);
+        endDate = CorrectDate(ratesProvider, endDate);
 
         if (endDate < startDate)
             (endDate, startDate) = (startDate, endDate);
@@ -60,10 +61,10 @@ internal class GetExchangeRatesRequestHandler(
             throw new NoDataException();
 
         //todo: README.md with local setup & startup
-        //todo: layout & CSS
         //optionals:
         //todo: unit tests
         //todo: currency converter UI
+        //todo: isalive/health endpoint instead of initial retrying
 
         //format response
         var minRate = targetPerSourceRates.Select(x => x.Rate).Min();
@@ -79,9 +80,9 @@ internal class GetExchangeRatesRequestHandler(
             targetPerSourceRates);
     }
 
-    private static DateOnly CorrectDate(DateOnly? date)
+    private static DateOnly CorrectDate(IExchangeRateProvider provider, DateOnly? date)
     {
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var today = provider.GetNearestToday();
 
         return date == null || date.Value > today
             ? today

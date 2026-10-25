@@ -2,6 +2,7 @@
 export interface GetApisResponse {
   apiId: string;
   displayName: string;
+  nearestToday: Date;
 }
 
 //Get currencies response
