@@ -35,14 +35,14 @@
     <button matButton="tonal" (click)="loadCurrencies()">Sprawdź ponownie</button>
   }
 
-  <mat-form-field>
+  <mat-form-field *redrawOnChange="dateFormat()">
     <mat-label>Wybierz zakres dat</mat-label>
-    <mat-date-range-input [rangePicker]="picker">
-      <input matStartDate placeholder="Start date" [(ngModel)]="selectedStartDate">
-      <input matEndDate placeholder="End date" [(ngModel)]="selectedEndDate">
+    <mat-date-range-input [rangePicker]="picker" [dateFilter]="dateFilter">
+      <input matStartDate placeholder="Start date" [(ngModel)]="selectedStartDate" disabled>
+      <input matEndDate placeholder="End date" [(ngModel)]="selectedEndDate" disabled>
     </mat-date-range-input>
     <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-    <mat-date-range-picker #picker></mat-date-range-picker>
+    <mat-date-range-picker #picker disabled="false"></mat-date-range-picker>
   </mat-form-field>
 
   <button matButton="filled" (click)="onShowRates()" [disabled]="!selectedSourceCurrency() || !selectedTargetCurrency()">Pokaż kursy</button>
@@ -53,13 +53,13 @@
       <thead>
         <tr>
           <th>Data</th>
-          <th>Przelicznik (1 {{ratesData()!.source.code}} = x {{ratesData()!.target.code}})</th>
+          <th>Kurs (1 {{ratesData()!.source.code}} = x {{ratesData()!.target.code}})</th>
         </tr>
       </thead>
       <tbody>
         @for (rate of ratesData()!.rates; track $index) {
           <tr>
-            <td>{{rate.date | date:'yyyy-MM-dd'}}</td>
+            <td>{{dateProvider.formatDate(rate.date)}}</td>
             <td>{{rate.rate | number:'1.4-4'}}</td>
           </tr>
         }

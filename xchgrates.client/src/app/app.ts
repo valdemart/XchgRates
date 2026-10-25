@@ -1,8 +1,7 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, inject, OnInit, resource, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { Component, computed, inject, OnInit, resource, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -10,27 +9,34 @@ import { GetApisResponse, GetCurrenciesResponse } from '../services/apis/apis.mo
 import { ApisService } from '../services/apis/apis.service';
 import { GetExchangeRatesResponse } from '../services/exchangeRates/exchangeRates.models';
 import { ExchangeRatesService } from '../services/exchangeRates/exchangeRates.service';
+import { SettingsService } from '../services/settings/settings.service';
+import { FormatableDateAdapter, provideFormatableDateProvider } from '../services/formatableDateAdapter.service';
+import { RedrawOnChangeDirective } from '../directives/redrawOnChange';
 
 @Component({
   selector: 'app-root',
-  styleUrl: './app.css',
+  styleUrl: './app.scss',
   templateUrl: './app.html',
   imports: [
-    DatePipe,
     DecimalPipe,
     FormsModule,
     MatButtonModule,
     MatDatepickerModule,
     MatFormFieldModule,
-    MatSelectModule
+    MatSelectModule,
+    RedrawOnChangeDirective
   ],
   providers: [
-    provideNativeDateAdapter()
+    provideFormatableDateProvider()
   ]
 })
 export class App implements OnInit {
   private apisService: ApisService = inject(ApisService);
   private exchangeRatesService: ExchangeRatesService = inject(ExchangeRatesService);
+  private settingsService: SettingsService = inject(SettingsService);
+  private dateProvider: FormatableDateAdapter = inject(FormatableDateAdapter);
+
+  public dateFormat = computed<string>(() => this.dateProvider.dateFormat());
 
   public receivedApis = signal<GetApisResponse[]>([]);
   public selectedApi = signal<string | null>(null);
@@ -44,10 +50,13 @@ export class App implements OnInit {
 
   public selectedStartDate = signal<Date | null>(null);
   public selectedEndDate = signal<Date | null>(null);
+  public selectedStartDate = signal<Date | null>(new Date());
+  public selectedEndDate = signal<Date | null>(new Date());
 
   public ratesData = signal<GetExchangeRatesResponse | null>(null);
 
   ngOnInit() {
+    this.settingsService.loadSettings();
     this.loadApis();
   }
 
@@ -99,5 +108,12 @@ export class App implements OnInit {
     }
 
     this.ratesData.set(newRates);
+  }
+
+  dateFilter(d: Date | null): boolean {
+    const today = new Date();
+    d = d ?? today;
+
+    return d <= today && 1 <= d.getDay() && d.getDay() <= 5;
   }
 }
