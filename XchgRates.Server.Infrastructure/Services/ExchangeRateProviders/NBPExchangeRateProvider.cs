@@ -12,6 +12,7 @@ internal class NBPExchangeRateProvider(
     private const string ExchangeRateEndpointPattern = "{0}/api/exchangerates/rates/a/{1}/{2:yyyy-MM-dd}/{3:yyyy-MM-dd}/?format=json";
 
     private readonly IEnumerable<CurrencyData> _currencies = [
+    private readonly CurrencyData[] _currencies = [
         new("PLN", "Złoty"),
         new("EUR", "Euro"),
         new("GBP", "Funt brytyjski"),
@@ -48,7 +49,12 @@ internal class NBPExchangeRateProvider(
             .OrderBy(r => r.Date)];
     }
 
-    protected override IEnumerable<CurrencyData> GetCurrencies(ApiConfiguration configuration)
+    //dev-note: requires business decision
+    //justification:
+    //NBP doesn't provide an endpoint with list of supported currencies.
+    //It's declared as to support entire ISO 4217 but experiments shown that may not be true.
+    //In theory, we could use table A call to get all supported currencies, but there's no guarantee that any call to table A always returns all supported currencies.
+    public override CurrencyData[] GetCurrencies(ApiConfiguration configuration)
         => _currencies;
 
     internal record ExchangeRateEndpointResponse(string Table, string Currency, string Code, ExchangeRateEndpointRateData[] Rates);
